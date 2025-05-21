@@ -2,26 +2,31 @@ import { Switch, Route } from "wouter";
 import ScannerPage from "@/pages/ScannerPage";
 import ResultPage from "@/pages/ResultPage";
 import HistoryPage from "@/pages/HistoryPage";
+import AuthPage from "@/pages/AuthPage";
 import NotFound from "@/pages/not-found";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
+import { User, UserPlus, LogOut, Settings, Scan, History, BookmarkCheck } from "lucide-react";
 
 function App() {
   const [activeTab, setActiveTab] = useState("scan");
   const [location, setLocation] = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
 
   // Sync navigation state with current route
   useEffect(() => {
     if (location === "/") setActiveTab("scan");
     else if (location === "/history") setActiveTab("history");
     else if (location.startsWith("/result")) setActiveTab("scan");
+    else if (location === "/auth") setActiveTab("profile");
   }, [location]);
 
   const handleNavChange = (tab: string) => {
     setActiveTab(tab);
     if (tab === "scan") setLocation("/");
     else if (tab === "history") setLocation("/history");
-    // Other tabs would be implemented similarly
+    else if (tab === "profile") setLocation("/auth");
   };
 
   return (
