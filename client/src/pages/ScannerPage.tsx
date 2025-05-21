@@ -12,14 +12,14 @@ export default function ScannerPage() {
   const [_, setLocation] = useLocation();
   const [manualBarcode, setManualBarcode] = useState("");
   const { scanBarcode, isProcessing } = useBarcode();
-  
+
   const handleScan = async (data: string) => {
     if (data && !isProcessing) {
       await scanBarcode(data);
       setLocation(`/result/${data}`);
     }
   };
-  
+
   const handleManualSearch = async () => {
     if (manualBarcode && !isProcessing) {
       await scanBarcode(manualBarcode);
@@ -30,22 +30,26 @@ export default function ScannerPage() {
   return (
     <>
       <Header />
-      
+
       <main className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col p-4">
           <div className="text-center mb-4">
-            <h2 className="text-lg font-medium text-neutral-700">Scan a product barcode</h2>
-            <p className="text-sm text-neutral-500">Position the barcode within the box below</p>
+            <h2 className="text-lg font-medium text-neutral-700">
+              Scan a product barcode
+            </h2>
+            <p className="text-sm text-neutral-500">
+              Position the barcode within the box below
+            </p>
           </div>
-          
+
           <div className="scanner-container relative mx-auto w-full bg-black rounded-xl overflow-hidden flex items-center justify-center">
             <BarcodeScanner onDetect={handleScan} />
             <ScannerOverlay />
           </div>
-          
+
           <div className="mt-6 flex flex-col items-center">
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               className="bg-primary text-white px-8 py-3 rounded-full font-medium shadow-md flex items-center justify-center"
               disabled={isProcessing}
               onClick={() => {
@@ -57,8 +61,10 @@ export default function ScannerPage() {
               <span className="material-icons mr-2">photo_camera</span>
               Scan Barcode
             </Button>
-            
-            <p className="mt-3 text-sm text-neutral-500">Or enter barcode manually</p>
+
+            <p className="mt-3 text-sm text-neutral-500">
+              Or enter barcode manually
+            </p>
             <div className="mt-2 w-full max-w-xs">
               <div className="relative">
                 <Input
@@ -68,12 +74,12 @@ export default function ScannerPage() {
                   value={manualBarcode}
                   onChange={(e) => setManualBarcode(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       handleManualSearch();
                     }
                   }}
                 />
-                <Button 
+                <Button
                   variant="ghost"
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 text-primary p-1 h-auto"
                   onClick={handleManualSearch}
@@ -82,13 +88,15 @@ export default function ScannerPage() {
                   <Search className="h-5 w-5" />
                 </Button>
               </div>
-              
+
               {/* Donation Button */}
               <div className="mt-3 w-full">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full flex items-center justify-center gap-2 bg-white border border-primary border-opacity-30 text-primary"
-                  onClick={() => window.open("https://www.buymeacoffee.com", "_blank")}
+                  onClick={() =>
+                    window.open("https://buymeacoffee.com/bfguo", "_blank")
+                  }
                 >
                   <span className="material-icons text-sm">favorite</span>
                   <span>Support This App</span>

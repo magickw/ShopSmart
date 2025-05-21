@@ -1,6 +1,7 @@
-import { pgTable, text, serial, integer, timestamp, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, json, varchar, boolean, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // Product schema
 export const products = pgTable("products", {
@@ -49,18 +50,58 @@ export const insertPriceSchema = createInsertSchema(prices).pick({
   inStock: true,
 });
 
+// User schema
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().notNull(),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  passwordHash: varchar("password_hash"),
+  googleId: varchar("google_id").unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertUserSchema = createInsertSchema(users).pick({
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  profileImageUrl: true,
+  passwordHash: true,
+  googleId: true,
+});
+
 // Scan history schema
 export const scanHistory = pgTable("scan_history", {
   id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id), // optional, can be null for anonymous scans
   barcode: text("barcode").notNull(),
   productData: json("product_data").notNull(),
   scannedAt: timestamp("scanned_at").defaultNow(),
+  isFavorite: boolean("is_favorite").default(false),
 });
 
 export const insertScanHistorySchema = createInsertSchema(scanHistory).pick({
   barcode: true,
   productData: true,
+  userId: true,
+  isFavorite: true,
 });
+
+// Scan history relations
+export const scanHistoryRelations = relations(scanHistory, ({ one }) => ({
+  user: one(users, {
+    fields: [scanHistory.userId],
+    references: [users.id],
+  }),
+}));
+
+// Add relations after both tables are defined
+export const usersRelations = relations(users, ({ many }) => ({
+  scanHistory: many(scanHistory),
+}));
 
 // Export types
 export type Product = typeof products.$inferSelect;
@@ -71,6 +112,9 @@ export type InsertStore = z.infer<typeof insertStoreSchema>;
 
 export type Price = typeof prices.$inferSelect;
 export type InsertPrice = z.infer<typeof insertPriceSchema>;
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type ScanHistory = typeof scanHistory.$inferSelect;
 export type InsertScanHistory = z.infer<typeof insertScanHistorySchema>;
