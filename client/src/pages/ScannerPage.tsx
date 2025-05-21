@@ -82,6 +82,18 @@ export default function ScannerPage() {
                   <Search className="h-5 w-5" />
                 </Button>
               </div>
+              
+              {/* Donation Button */}
+              <div className="mt-3 w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full flex items-center justify-center gap-2 bg-white border border-primary border-opacity-30 text-primary"
+                  onClick={() => window.open("https://www.buymeacoffee.com", "_blank")}
+                >
+                  <span className="material-icons text-sm">favorite</span>
+                  <span>Support This App</span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
