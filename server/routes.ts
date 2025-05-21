@@ -7,11 +7,14 @@ import { z } from "zod";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
+import { setupAuth, isAuthenticated } from "./auth";
 
 // Define the Barcode Lookup API base URL
 const BARCODE_API_URL = "https://api.barcodelookup.com/v3/products";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication routes and middleware
+  await setupAuth(app);
   // API route for looking up barcode
   app.get("/api/lookup/:barcode", async (req, res) => {
     try {
@@ -134,9 +137,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // API route for getting scan history
+  // API route for getting scan history (works for both authenticated and non-authenticated users)
   app.get("/api/history", async (req, res) => {
     try {
+      // If user is authenticated, get their specific history
+      if (req.isAuthenticated() && req.user) {
+        const userId = req.user.id || req.user.claims?.sub;
+        if (userId) {
+          const history = await storage.getScanHistory(userId);
+          return res.json(history);
+        }
+      }
+      
+      // Otherwise return general (or anonymous) history
       const history = await storage.getScanHistory();
       res.json(history);
     } catch (error) {
@@ -148,11 +161,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API route for clearing scan history
   app.post("/api/history/clear", async (req, res) => {
     try {
+      // If user is authenticated, clear only their history
+      if (req.isAuthenticated() && req.user) {
+        const userId = req.user.id || req.user.claims?.sub;
+        if (userId) {
+          await storage.clearScanHistory(userId);
+          return res.json({ message: "Your scan history cleared successfully" });
+        }
+      }
+      
+      // Otherwise clear general history
       await storage.clearScanHistory();
       res.json({ message: "Scan history cleared successfully" });
     } catch (error) {
       console.error("Error in /api/history/clear:", error);
       res.status(500).json({ message: "Failed to clear scan history" });
+    }
+  });
+  
+  // API route for user profile (protected)
+  app.get("/api/profile", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id || req.user.claims?.sub;
+      if (!userId) {
+        return res.status(400).json({ message: "User ID not found" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Send back user info without sensitive data
+      res.json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
+      });
+    } catch (error) {
+      console.error("Error in /api/profile:", error);
+      res.status(500).json({ message: "Failed to retrieve user profile" });
+    }
+  });
+  
+  // API route for updating user profile (protected)
+  app.patch("/api/profile", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id || req.user.claims?.sub;
+      if (!userId) {
+        return res.status(400).json({ message: "User ID not found" });
+      }
+      
+      const { firstName, lastName } = req.body;
+      const updateData: any = {};
+      
+      if (firstName !== undefined) updateData.firstName = firstName;
+      if (lastName !== undefined) updateData.lastName = lastName;
+      
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Send back updated user info without sensitive data
+      res.json({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        profileImageUrl: updatedUser.profileImageUrl,
+      });
+    } catch (error) {
+      console.error("Error in PATCH /api/profile:", error);
+      res.status(500).json({ message: "Failed to update user profile" });
     }
   });
   
