@@ -38,7 +38,7 @@ export function useAuth() {
   // Login mutation
   const login = useMutation({
     mutationFn: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-      const response = await apiRequest("/api/auth/login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -67,7 +67,7 @@ export function useAuth() {
   // Register mutation
   const register = useMutation({
     mutationFn: async (credentials: RegisterCredentials): Promise<AuthResponse> => {
-      const response = await apiRequest("/api/auth/register", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -96,7 +96,7 @@ export function useAuth() {
   // Logout mutation
   const logout = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("/api/auth/logout", {
+      const response = await fetch("/api/auth/logout", {
         method: "POST",
       });
       
