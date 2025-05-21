@@ -36,6 +36,7 @@ function App() {
           <Route path="/" component={ScannerPage} />
           <Route path="/result/:barcode" component={ResultPage} />
           <Route path="/history" component={HistoryPage} />
+          <Route path="/auth" component={AuthPage} />
           <Route component={NotFound} />
         </Switch>
       </div>
@@ -46,27 +47,37 @@ function App() {
             onClick={() => handleNavChange("scan")} 
             className={`flex flex-col items-center p-2 ${activeTab === "scan" ? "text-primary" : "text-neutral-500"}`}
           >
-            <span className="material-icons">qr_code_scanner</span>
+            <Scan className="h-5 w-5" />
             <span className="text-xs mt-1">Scan</span>
           </button>
           <button 
             onClick={() => handleNavChange("history")} 
             className={`flex flex-col items-center p-2 ${activeTab === "history" ? "text-primary" : "text-neutral-500"}`}
           >
-            <span className="material-icons">history</span>
+            <History className="h-5 w-5" />
             <span className="text-xs mt-1">History</span>
           </button>
           <button 
             className="flex flex-col items-center p-2 text-neutral-500"
           >
-            <span className="material-icons">favorite_border</span>
+            <BookmarkCheck className="h-5 w-5" />
             <span className="text-xs mt-1">Saved</span>
           </button>
           <button 
-            className="flex flex-col items-center p-2 text-neutral-500"
+            onClick={() => handleNavChange("profile")}
+            className={`flex flex-col items-center p-2 ${activeTab === "profile" ? "text-primary" : "text-neutral-500"}`}
           >
-            <span className="material-icons">settings</span>
-            <span className="text-xs mt-1">Settings</span>
+            {isAuthenticated ? (
+              <>
+                <User className="h-5 w-5" />
+                <span className="text-xs mt-1">Profile</span>
+              </>
+            ) : (
+              <>
+                <UserPlus className="h-5 w-5" />
+                <span className="text-xs mt-1">Sign In</span>
+              </>
+            )}
           </button>
         </div>
       </nav>
