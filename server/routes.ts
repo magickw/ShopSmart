@@ -6,6 +6,7 @@ import { productResponseSchema } from "@shared/schema";
 import { z } from "zod";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 
 // Define the Barcode Lookup API base URL
 const BARCODE_API_URL = "https://api.barcodelookup.com/v3/products";
@@ -153,6 +154,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error in /api/history/clear:", error);
       res.status(500).json({ message: "Failed to clear scan history" });
     }
+  });
+  
+  // PayPal donation routes
+  app.get("/paypal/setup", async (req, res) => {
+    await loadPaypalDefault(req, res);
+  });
+
+  app.post("/order", async (req, res) => {
+    // Request body should contain: { intent, amount, currency }
+    await createPaypalOrder(req, res);
+  });
+
+  app.post("/order/:orderID/capture", async (req, res) => {
+    await capturePaypalOrder(req, res);
   });
 
   const httpServer = createServer(app);
