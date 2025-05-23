@@ -138,7 +138,7 @@ The database uses three main tables:
 
 ## Deployment Strategy
 
-The application is configured for deployment on Replit with:
+The application is configured for deployment with:
 
 1. **Build Process**:
    - Frontend: Vite build process
@@ -158,7 +158,7 @@ The application is configured for deployment on Replit with:
 
 ## Getting Started
 
-1. Ensure the PostgreSQL database is provisioned (via Replit's database feature)
+1. Ensure the PostgreSQL database is provisioned
 2. Set the required environment variables:
    - `DATABASE_URL`: PostgreSQL connection string
    - `BARCODE_LOOKUP_API_KEY`: API key for barcode lookup service

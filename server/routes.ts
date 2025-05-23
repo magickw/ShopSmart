@@ -10,7 +10,7 @@ import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./payp
 import { setupAuth, isAuthenticated } from "./auth";
 
 // Define the Barcode Lookup API base URL
-const BARCODE_API_URL = "https://api.barcodelookup.com/v3/products";
+const BARCODE_API_URL = "https://api.upcitemdb.com/prod/trial/lookup?upc=";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes and middleware
