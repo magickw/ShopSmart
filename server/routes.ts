@@ -51,12 +51,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     );
       
-      // Process the response and extract relevant data
-      if (!response.data.products || response.data.products.length === 0) {
+      // Accessed response.data.items (not products — UPCitemdb’s response uses items)
+      if (!response.data.items || response.data.items.length === 0) {
         return res.status(404).json({ message: "Product not found" });
       }
       
-      const apiProduct = response.data.products[0];
+      const apiProduct = response.data.items[0];
       
       // Create stores array with pricing information
       // In a real app, you would query multiple retailer APIs or a unified API
