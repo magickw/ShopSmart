@@ -17,7 +17,12 @@ export default function StoreComparison({ store }: StoreComparisonProps) {
               <span className="material-icons text-neutral-700">storefront</span>
             </div>
             <div>
-              <h4 className="font-medium text-neutral-800">{store.name}</h4>
+              <h4 className="font-medium text-neutral-800"><a
+                  href={store.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline hover:text-blue-600"
+                >{store.name}</h4>
               <p className="text-xs text-neutral-500">Updated: {dateText}</p>
             </div>
           </div>
