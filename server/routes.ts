@@ -9,7 +9,7 @@ import { fromZodError } from "zod-validation-error";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 import { setupAuth, isAuthenticated } from "./auth";
 
-// Define the Barcode Lookup API base URL
+// Define the upcitemdb API base URL
 const BARCODE_API_URL = "https://api.upcitemdb.com/prod/trial/lookup";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -26,19 +26,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(cachedProduct);
       }
       
-      // If not cached, fetch from Barcode Lookup API
-      const apiKey = process.env.BARCODE_LOOKUP_API_KEY;
-      if (!apiKey) {
-        return res.status(500).json({ message: "API key not configured" });
-      }
+      // // If not cached, fetch from Barcode Lookup API
+      // const apiKey = process.env.BARCODE_LOOKUP_API_KEY;
+      // if (!apiKey) {
+      //   return res.status(500).json({ message: "API key not configured" });
+      // }
       
-      const response = await axios.get(BARCODE_API_URL, {
-        params: {
-          upc: barcode,  // NOTE: upc, not barcode
-          key: apiKey,
-          formatted: "y"
-        }
-      });
+      // const response = await axios.get(BARCODE_API_URL, {
+      //   params: {
+      //     upc: barcode,  // NOTE: upc, not barcode
+      //     key: apiKey,
+      //     formatted: "y"
+      //   }
+      // });
+
+      const response = await axios.post(
+      BARCODE_API_URL,
+      { upc: barcode },  // The trial endpoint expects a POST body, not query params
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      }
+    );
       
       // Process the response and extract relevant data
       if (!response.data.products || response.data.products.length === 0) {
