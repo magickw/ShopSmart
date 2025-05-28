@@ -61,44 +61,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create stores array with pricing information
       // In a real app, you would query multiple retailer APIs or a unified API
       // For this example, we'll simulate the data for different stores
-      const stores = [
-        {
-          id: 1,
-          name: "Walmart",
-          price: (parseFloat(apiProduct.offers[0]?.price || "10") * 1.05).toFixed(2),
-          currency: "USD",
-          inStock: 1,
-          isBestPrice: false,
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 2,
-          name: "Costco",
-          price: (parseFloat(apiProduct.offers[0]?.price || "10") * 0.85).toFixed(2),
-          currency: "USD",
-          inStock: 1,
-          isBestPrice: false,
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 3,
-          name: "Safeway",
-          price: (parseFloat(apiProduct.offers[0]?.price || "10") * 1.10).toFixed(2),
-          currency: "USD",
-          inStock: 1,
-          isBestPrice: false,
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 4,
-          name: "Target",
-          price: (parseFloat(apiProduct.offers[0]?.price || "10") * 0.95).toFixed(2),
-          currency: "USD",
-          inStock: 1,
-          isBestPrice: false,
-          updatedAt: new Date().toISOString()
-        }
-      ];
+      // const stores = [
+      //   {
+      //     id: 1,
+      //     name: "Walmart",
+      //     price: (parseFloat(apiProduct.offers[0]?.price || "10") * 1.05).toFixed(2),
+      //     currency: "USD",
+      //     inStock: 1,
+      //     isBestPrice: false,
+      //     updatedAt: new Date().toISOString()
+      //   },
+      //   {
+      //     id: 2,
+      //     name: "Costco",
+      //     price: (parseFloat(apiProduct.offers[0]?.price || "10") * 0.85).toFixed(2),
+      //     currency: "USD",
+      //     inStock: 1,
+      //     isBestPrice: false,
+      //     updatedAt: new Date().toISOString()
+      //   },
+      //   {
+      //     id: 3,
+      //     name: "Safeway",
+      //     price: (parseFloat(apiProduct.offers[0]?.price || "10") * 1.10).toFixed(2),
+      //     currency: "USD",
+      //     inStock: 1,
+      //     isBestPrice: false,
+      //     updatedAt: new Date().toISOString()
+      //   },
+      //   {
+      //     id: 4,
+      //     name: "Target",
+      //     price: (parseFloat(apiProduct.offers[0]?.price || "10") * 0.95).toFixed(2),
+      //     currency: "USD",
+      //     inStock: 1,
+      //     isBestPrice: false,
+      //     updatedAt: new Date().toISOString()
+      //   }
+      // ];
+      const stores = apiProduct.offers.map((offer, index) => ({
+        id: index + 1,
+        name: offer.merchant,
+        price: offer.price.toFixed(2),
+        currency: offer.currency || "USD",  // fallback if missing
+        inStock: offer.availability !== "Out of Stock" ? 1 : 0,
+        isBestPrice: false,  // we'll compute this below
+        updatedAt: new Date(offer.updated_t * 1000).toISOString(),  // convert Unix timestamp
+        link: offer.link,
+      }));
+
       
       // Find the best price
       const minPrice = Math.min(...stores.map(store => parseFloat(store.price)));
@@ -114,6 +125,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title: apiProduct.title,
         brand: apiProduct.brand,
         category: apiProduct.category,
+        description: apiProduct.description,
+        model: apiProduct.model,
+        images: apiProduct.images,
+        lowestRecordedPrice: apiProduct.lowest_recorded_price,
+        highestRecordedPrice: apiProduct.highest_recorded_price,
         stores
       };
       
