@@ -65,7 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 1,
           name: "Walmart",
-          price: (parseFloat(apiProduct.price) * 1.05).toFixed(2),
+          price: (parseFloat(apiProduct.offers[0]?.price || "10") * 1.05).toFixed(2),
           currency: "USD",
           inStock: 1,
           isBestPrice: false,
@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 2,
           name: "Costco",
-          price: (parseFloat(apiProduct.price) * 0.85).toFixed(2),
+          price: (parseFloat(apiProduct.offers[0]?.price || "10") * 0.85).toFixed(2),
           currency: "USD",
           inStock: 1,
           isBestPrice: false,
@@ -83,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 3,
           name: "Safeway",
-          price: (parseFloat(apiProduct.price) * 1.10).toFixed(2),
+          price: (parseFloat(apiProduct.offers[0]?.price || "10") * 1.10).toFixed(2),
           currency: "USD",
           inStock: 1,
           isBestPrice: false,
@@ -92,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 4,
           name: "Target",
-          price: (parseFloat(apiProduct.price) * 0.95).toFixed(2),
+          price: (parseFloat(apiProduct.offers[0]?.price || "10") * 0.95).toFixed(2),
           currency: "USD",
           inStock: 1,
           isBestPrice: false,
