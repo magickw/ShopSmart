@@ -9,9 +9,17 @@ export default function ProductCard({ product }: ProductCardProps) {
     <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
       <div className="p-4">
         <div className="flex items-start">
-          {/* Placeholder for product image */}
+          {/* Product image */}
           <div className="bg-neutral-200 rounded-lg w-24 h-24 flex items-center justify-center mr-4 flex-shrink-0">
-            <span className="material-icons text-neutral-400 text-3xl">inventory_2</span>
+            {product.imageUrl ? (
+              <img
+                src={product.imageUrl}
+                alt={product.title}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            ) : (
+              <span className="material-icons text-neutral-400 text-3xl">inventory_2</span>
+            )}
           </div>
           
           <div className="flex-1">

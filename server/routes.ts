@@ -108,6 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isBestPrice: false,  // we'll compute this below
         updatedAt: new Date(offer.updated_t * 1000).toISOString(),  // convert Unix timestamp
         link: offer.link,
+        imageUrl: offer.image || apiProduct.images[0] || ""  // fallback to product image if offer image is missing
       }));
 
       
