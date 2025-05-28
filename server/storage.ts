@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { 
   Product, InsertProduct, 
   ScanHistory, InsertScanHistory,
