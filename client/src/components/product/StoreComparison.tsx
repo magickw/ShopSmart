@@ -22,7 +22,7 @@ export default function StoreComparison({ store }: StoreComparisonProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:underline hover:text-blue-600"
-                >{store.name}</h4>
+                >{store.name}</a></h4>
               <p className="text-xs text-neutral-500">Updated: {dateText}</p>
             </div>
           </div>
