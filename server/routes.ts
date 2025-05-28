@@ -10,7 +10,7 @@ import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./payp
 import { setupAuth, isAuthenticated } from "./auth";
 
 // Define the Barcode Lookup API base URL
-const BARCODE_API_URL = "https://api.upcitemdb.com/prod/trial/lookup?upc=";
+const BARCODE_API_URL = "https://api.upcitemdb.com/prod/trial/lookup";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes and middleware
@@ -34,7 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const response = await axios.get(BARCODE_API_URL, {
         params: {
-          barcode,
+          upc: barcode,  // NOTE: upc, not barcode
           key: apiKey,
           formatted: "y"
         }
