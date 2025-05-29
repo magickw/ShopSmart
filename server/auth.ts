@@ -50,6 +50,9 @@ export function generateToken(user: any): string {
     {
       id: user.id,
       email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profileImageUrl: user.profileImageUrl,
     },
     secret,
     { expiresIn: "7d" }
@@ -67,9 +70,9 @@ export function verifyToken(token: string): any {
 
 // Authentication middleware
 export const isAuthenticated: RequestHandler = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  }
+  if (req.isAuthenticated?.() && req.user) {
+      return next();
+    }
   
   // Also check for JWT in Authorization header
   const authHeader = req.headers.authorization;
@@ -242,20 +245,23 @@ export async function setupAuth(app: Express) {
     }),
     (req, res) => {
       // Successful authentication, redirect home
-      res.redirect("/");
+      const token = generateToken(req.user);
+      res.redirect(`/login/success?token=${token}`);
     }
   );
 
   // Current user route
   app.get("/api/auth/user", isAuthenticated, (req, res) => {
-    res.json(req.user);
+    res.json({ user: req.user });
   });
 
   // Logout route
   app.post("/api/auth/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
-      res.json({ success: true });
+      req.session?.destroy(() => {
+        res.json({ success: true });
+      });
     });
   });
 }
