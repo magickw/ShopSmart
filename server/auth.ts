@@ -251,17 +251,24 @@ export async function setupAuth(app: Express) {
   );
 
   // Current user route
-  // app.get("/api/auth/user", isAuthenticated, (req, res) => {
-  //   res.json({ user: req.user });
-  // });
   app.get("/api/auth/user", (req, res) => {
-      console.log("Session info:", req.session);
-      console.log("User info:", req.user);
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Unauthorized" });
+    // Check session-based authentication first
+    if (req.isAuthenticated?.() && req.user) {
+      return res.json(req.user);
+    }
+    
+    // Check JWT token in Authorization header
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const user = verifyToken(token);
+      if (user) {
+        return res.json(user);
       }
-      res.json({ user: req.user });
-    });
+    }
+    
+    return res.status(401).json({ message: "Unauthorized" });
+  });
 
   // Logout route
   app.post("/api/auth/logout", (req, res, next) => {
