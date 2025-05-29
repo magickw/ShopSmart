@@ -150,18 +150,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in /api/lookup:", error);
       
+      console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      
       if (error instanceof z.ZodError) {
         const readableError = fromZodError(error);
+        console.error("Zod validation error:", readableError.message);
         return res.status(422).json({ message: "Invalid data format from API", details: readableError.message });
       }
       
       if (axios.isAxiosError(error)) {
         const status = error.response?.status || 500;
         const message = error.response?.data?.message || error.message || "Unknown error";
+        console.error("Axios error:", { status, message, data: error.response?.data });
         return res.status(status).json({ message });
       }
       
-      return res.status(500).json({ message: "Server error" });
+      // Log the full error for debugging
+      console.error("Unhandled error details:", {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        name: error instanceof Error ? error.name : 'Unknown',
+        cause: error instanceof Error ? error.cause : undefined
+      });
+      
+      return res.status(500).json({ message: "Server error", details: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
   
