@@ -262,10 +262,18 @@ export class DatabaseStorage implements IStorage {
           if (existingStore) {
             storeId = existingStore.id;
             
-            // Update store if needed and if logo actually changed
+           // Update store if needed
+            const updateData: any = {};
             if (storeData.logo && existingStore.logo !== storeData.logo) {
+              updateData.logo = storeData.logo;
+            }
+            if (storeData.link && existingStore.link !== storeData.link) {
+              updateData.link = storeData.link;
+            }
+            
+            if (Object.keys(updateData).length > 0) {
               await tx.update(schema.stores)
-                .set({ logo: storeData.logo })
+                .set(updateData)
                 .where(eq(schema.stores.id, storeId));
             }
           } else {
@@ -274,6 +282,7 @@ export class DatabaseStorage implements IStorage {
               .values({
                 name: storeData.name,
                 logo: storeData.logo,
+                link: storeData.link,
               })
               .returning();
             

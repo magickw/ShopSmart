@@ -4,10 +4,6 @@
 
 ShopSmart is a full-stack web application that allows users to scan product barcodes and compare prices across different retailers. Users can scan a product, view detailed pricing information from various stores, and access their scan history.
 
-## User Preferences
-
-Preferred communication style: Simple, everyday language.
-
 ## System Architecture
 
 The application follows a modern web architecture with the following components:

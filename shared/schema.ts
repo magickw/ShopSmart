@@ -24,6 +24,9 @@ export const stores = pgTable("stores", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   logo: text("logo"),
+  link: text("link"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertStoreSchema = createInsertSchema(stores).pick({
