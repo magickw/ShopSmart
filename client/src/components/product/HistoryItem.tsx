@@ -11,12 +11,18 @@ export default function HistoryItem({ item, onView }: HistoryItemProps) {
   
   // Find the best price store
   const bestPriceStore = productData.stores.find(store => store.isBestPrice);
-  const lowestPrice = bestPriceStore ? bestPriceStore.price : 
-    productData.stores.length > 0 ? productData.stores[0].price : "N/A";
+  const lowestPrice = bestPriceStore
+    ? bestPriceStore.price
+    : productData.stores.length > 0
+    ? productData.stores[0].price
+    : "N/A";
   
-  const storeName = bestPriceStore ? bestPriceStore.name : 
-    productData.stores.length > 0 ? productData.stores[0].name : "";
-  
+  const storeName = bestPriceStore
+    ? bestPriceStore.name
+    : productData.stores.length > 0
+    ? productData.stores[0].name
+    : "";
+
   return (
     <div className="p-4 hover:bg-neutral-50 cursor-pointer" onClick={onView}>
       <div className="flex items-center">
@@ -29,12 +35,20 @@ export default function HistoryItem({ item, onView }: HistoryItemProps) {
         </div>
         <div className="text-right">
           <p className="text-sm font-bold text-neutral-800">${lowestPrice}</p>
-          <p className="text-xs text-neutral-500"><a
-                  href={store.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline hover:text-blue-600"
-                >{store.name}</a></p>
+          <p className="text-xs text-neutral-500">
+            {bestPriceStore ? (
+              <a
+                href={bestPriceStore.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline hover:text-blue-600"
+              >
+                {bestPriceStore.name}
+              </a>
+            ) : (
+              <span>{storeName}</span>
+            )}
+          </p>
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between">
