@@ -354,15 +354,21 @@ export class DatabaseStorage implements IStorage {
   // History methods
   async getScanHistory(userId?: string): Promise<ScanHistory[]> {
     try {
-      const query = userId 
-        ? db.query.scanHistory.findMany({
-            where: eq(schema.scanHistory.userId, userId),
-            orderBy: (fields, { desc }) => [desc(fields.scannedAt)],
-          })
-        : db.query.scanHistory.findMany({
-            orderBy: (fields, { desc }) => [desc(fields.scannedAt)],
-          });
+      let query;
       
+      if (userId) {
+        // Get user-specific history
+        query = db.query.scanHistory.findMany({
+          where: eq(schema.scanHistory.userId, userId),
+          orderBy: (fields, { desc }) => [desc(fields.scannedAt)],
+        });
+      } else {
+        // Get general history (including null user entries for anonymous users)
+        query = db.query.scanHistory.findMany({
+          where: (fields, { isNull }) => isNull(fields.userId),
+          orderBy: (fields, { desc }) => [desc(fields.scannedAt)],
+        });
+      }
       return await query;
     } catch (error) {
       console.error("Error fetching scan history:", error);

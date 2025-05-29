@@ -7,55 +7,69 @@ interface HistoryItemProps {
 }
 
 export default function HistoryItem({ item, onView }: HistoryItemProps) {
-  const productData = item.productData as ProductResponse;
-  
-  // Find the best price store
-  const bestPriceStore = productData.stores.find(store => store.isBestPrice);
-  const lowestPrice = bestPriceStore
-    ? bestPriceStore.price
-    : productData.stores.length > 0
-    ? productData.stores[0].price
-    : "N/A";
-  
-  const storeName = bestPriceStore
-    ? bestPriceStore.name
-    : productData.stores.length > 0
-    ? productData.stores[0].name
-    : "";
+  const product = item.productData as ProductResponse;
+
+  if (!product) {
+    return null;
+  }
+
+  const bestPriceStore = product.stores?.find(store => store.isBestPrice);
+  const firstImage = product.images?.[0];
 
   return (
-    <div className="p-4 hover:bg-neutral-50 cursor-pointer" onClick={onView}>
-      <div className="flex items-center">
-        <div className="bg-neutral-100 rounded-lg w-12 h-12 flex items-center justify-center mr-3 flex-shrink-0">
-          <span className="material-icons text-neutral-500">inventory_2</span>
-        </div>
-        <div className="flex-1">
-          <h3 className="font-medium text-neutral-800 mb-0.5">{productData.title}</h3>
-          <p className="text-sm text-neutral-600">{productData.brand || "Unknown brand"}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-bold text-neutral-800">${lowestPrice}</p>
-          <p className="text-xs text-neutral-500">
-            {bestPriceStore ? (
-              <a
-                href={bestPriceStore.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline hover:text-blue-600"
-              >
-                {bestPriceStore.name}
-              </a>
-            ) : (
-              <span>{storeName}</span>
-            )}
+    <div className="p-4 cursor-pointer hover:bg-neutral-50 transition-colors" onClick={onView}>
+      <div className="flex items-start space-x-3">
+        {firstImage ? (
+          <img 
+            src={firstImage} 
+            alt={product.title}
+            className="w-12 h-12 object-cover rounded-lg bg-neutral-100"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="w-12 h-12 bg-neutral-200 rounded-lg flex items-center justify-center">
+            <span className="material-icons text-neutral-400 text-lg">image</span>
+          </div>
+        )}
+
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-medium text-neutral-900 truncate">
+            {product.title}
+          </h3>
+
+          {product.brand && (
+            <p className="text-xs text-neutral-600 mt-1">{product.brand}</p>
+          )}
+
+          {bestPriceStore && (
+            <div className="flex items-center mt-1">
+              <span className="text-sm font-semibold text-green-600">
+                ${bestPriceStore.price}
+              </span>
+              {bestPriceStore.link ? (
+                <a
+                  href={bestPriceStore.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-neutral-500 ml-1 hover:text-blue-600 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  at {bestPriceStore.name}
+                </a>
+              ) : (
+                <span className="text-xs text-neutral-500 ml-1">at {bestPriceStore.name}</span>
+              )}
+            </div>
+          )}
+
+          <p className="text-xs text-neutral-500 mt-1">
+            {formatDate(item.scannedAt)}
           </p>
         </div>
-      </div>
-      <div className="mt-2 flex items-center justify-between">
-        <p className="text-xs text-neutral-500">
-          Scanned {formatDate(item.scannedAt.toString())}
-        </p>
-        <button className="text-xs text-primary font-medium">View</button>
+
+        <span className="material-icons text-neutral-400 text-lg">chevron_right</span>
       </div>
     </div>
   );

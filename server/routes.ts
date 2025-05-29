@@ -101,7 +101,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Save to scan history
       await storage.saveScanHistory({
         barcode,
-        productData: validatedProduct
+        productData: validatedProduct,
+        userId: req.isAuthenticated() && req.user ? (req.user.id || req.user.claims?.sub) : null
       });
 
       return res.json(validatedProduct);
@@ -126,18 +127,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API route for getting scan history (works for both authenticated and non-authenticated users)
   app.get("/api/history", async (req, res) => {
     try {
+      let history;
       // If user is authenticated, get their specific history
       if (req.isAuthenticated() && req.user) {
         const userId = req.user.id || req.user.claims?.sub;
         if (userId) {
-          const history = await storage.getScanHistory(userId);
-          return res.json(history);
+        history = await storage.getScanHistory(userId);
+        } else {
+          // Fallback for anonymous users
+          history = await storage.getScanHistory();
         }
+      } else {
+        // For anonymous users, get general history
+        history = await storage.getScanHistory();
       }
 
-      // Otherwise return general (or anonymous) history
-      const history = await storage.getScanHistory();
-      res.json(history);
+      res.json(history || []);
     } catch (error) {
       console.error("Error in /api/history:", error);
       res.status(500).json({ message: "Failed to retrieve scan history" });
