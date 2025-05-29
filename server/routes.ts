@@ -19,19 +19,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/lookup/:barcode", async (req, res) => {
     try {
       const barcode = req.params.barcode;
-      
+
       // Check if we already have this product cached
       const cachedProduct = await storage.getProductByBarcode(barcode);
       if (cachedProduct) {
         return res.json(cachedProduct);
       }
-      
+
       // // If not cached, fetch from Barcode Lookup API
       // const apiKey = process.env.BARCODE_LOOKUP_API_KEY;
       // if (!apiKey) {
       //   return res.status(500).json({ message: "API key not configured" });
       // }
-      
+
       // const response = await axios.get(BARCODE_API_URL, {
       //   params: {
       //     upc: barcode,  // NOTE: upc, not barcode
@@ -50,16 +50,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       }
     );
-      
+
       // Accessed response.data.items (not products — UPCitemdb’s response uses items)
       if (!response.data.items || response.data.items.length === 0) {
         return res.status(404).json({ message: "Product not found" });
       }
-      
+
       const apiProduct = response.data.items[0];
-      if (!apiProduct) {
-        return res.status(404).json({ message: "Product not found" });
-      }
       const stores = apiProduct.offers.map((offer, index) => ({
         id: index + 1,
         name: offer.merchant,
@@ -72,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imageUrl: offer.image || apiProduct.images[0] || ""  // fallback to product image if offer image is missing
       }));
 
-      
+
       // Find the best price
       const minPrice = Math.min(...stores.map(store => parseFloat(store.price)));
       stores.forEach(store => {
@@ -80,7 +77,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           store.isBestPrice = true;
         }
       });
-      
+
       // Create product response object
       const product = {
         barcode,
@@ -94,49 +91,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         highestRecordedPrice: apiProduct.highest_recorded_price,
         stores
       };
-      
+
       // Validate with Zod schema
       const validatedProduct = productResponseSchema.parse(product);
-      
+
       // Cache the product
       await storage.saveProduct(validatedProduct);
-      
+
       // Save to scan history
       await storage.saveScanHistory({
         barcode,
         productData: validatedProduct
       });
-      
+
       return res.json(validatedProduct);
     } catch (error) {
       console.error("Error in /api/lookup:", error);
-      
-      console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
-      
+
       if (error instanceof z.ZodError) {
         const readableError = fromZodError(error);
-        console.error("Zod validation error:", readableError.message);
         return res.status(422).json({ message: "Invalid data format from API", details: readableError.message });
       }
-      
+
       if (axios.isAxiosError(error)) {
         const status = error.response?.status || 500;
         const message = error.response?.data?.message || error.message || "Unknown error";
-        console.error("Axios error:", { status, message, data: error.response?.data });
         return res.status(status).json({ message });
       }
-      
-      // Log the full error for debugging
-      console.error("Unhandled error details:", {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        name: error instanceof Error ? error.name : 'Unknown',
-        cause: error instanceof Error ? error.cause : undefined
-      });
-      
-      return res.status(500).json({ message: "Server error", details: error instanceof Error ? error.message : 'Unknown error' });
+
+      return res.status(500).json({ message: "Server error" });
     }
   });
-  
+
   // API route for getting scan history (works for both authenticated and non-authenticated users)
   app.get("/api/history", async (req, res) => {
     try {
@@ -148,7 +134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json(history);
         }
       }
-      
+
       // Otherwise return general (or anonymous) history
       const history = await storage.getScanHistory();
       res.json(history);
@@ -157,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to retrieve scan history" });
     }
   });
-  
+
   // API route for clearing scan history
   app.post("/api/history/clear", async (req, res) => {
     try {
@@ -169,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ message: "Your scan history cleared successfully" });
         }
       }
-      
+
       // Otherwise clear general history
       await storage.clearScanHistory();
       res.json({ message: "Scan history cleared successfully" });
@@ -178,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to clear scan history" });
     }
   });
-  
+
   // API route for user profile (protected)
   app.get("/api/profile", isAuthenticated, async (req, res) => {
     try {
@@ -186,12 +172,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(400).json({ message: "User ID not found" });
       }
-      
+
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Send back user info without sensitive data
       res.json({
         id: user.id,
@@ -205,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to retrieve user profile" });
     }
   });
-  
+
   // API route for updating user profile (protected)
   app.patch("/api/profile", isAuthenticated, async (req, res) => {
     try {
@@ -213,19 +199,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(400).json({ message: "User ID not found" });
       }
-      
+
       const { firstName, lastName } = req.body;
       const updateData: any = {};
-      
+
       if (firstName !== undefined) updateData.firstName = firstName;
       if (lastName !== undefined) updateData.lastName = lastName;
-      
+
       const updatedUser = await storage.updateUser(userId, updateData);
-      
+
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Send back updated user info without sensitive data
       res.json({
         id: updatedUser.id,
@@ -239,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update user profile" });
     }
   });
-  
+
   // PayPal donation routes
   app.get("/paypal/setup", async (req, res) => {
     await loadPaypalDefault(req, res);
@@ -252,6 +238,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/order/:orderID/capture", async (req, res) => {
     await capturePaypalOrder(req, res);
+  });
+
+  // Clear history
+  app.post("/api/history/clear", async (req, res) => {
+    try {
+      await storage.clearScanHistory();
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error clearing history:", error);
+      res.status(500).json({ message: "Error clearing history" });
+    }
+  });
+
+  // Get saved products
+  app.get("/api/saved", async (req, res) => {
+    try {
+      const savedProducts = await storage.getSavedProducts();
+      res.json(savedProducts);
+    } catch (error) {
+      console.error("Error fetching saved products:", error);
+      res.status(500).json({ message: "Error fetching saved products" });
+    }
+  });
+
+  // Save a product
+  app.post("/api/saved", async (req, res) => {
+    try {
+      const product = productResponseSchema.parse(req.body);
+      await storage.saveProductToFavorites(product);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error saving product:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid product data" });
+      }
+      res.status(500).json({ message: "Error saving product" });
+    }
+  });
+
+  // Remove saved product
+  app.delete("/api/saved/:barcode", async (req, res) => {
+    try {
+      const { barcode } = req.params;
+      await storage.removeSavedProduct(barcode);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing saved product:", error);
+      res.status(500).json({ message: "Error removing saved product" });
+    }
+  });
+
+  // Clear all saved products
+  app.post("/api/saved/clear", async (req, res) => {
+    try {
+      await storage.clearSavedProducts();
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error clearing saved products:", error);
+      res.status(500).json({ message: "Error clearing saved products" });
+    }
   });
 
   const httpServer = createServer(app);

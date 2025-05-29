@@ -2,6 +2,7 @@ import { Switch, Route } from "wouter";
 import ScannerPage from "@/pages/ScannerPage";
 import ResultPage from "@/pages/ResultPage";
 import HistoryPage from "@/pages/HistoryPage";
+import SavedPage from "@/pages/SavedPage";
 import AuthPage from "@/pages/AuthPage";
 import NotFound from "@/pages/not-found";
 import { useEffect, useState } from "react";
@@ -18,6 +19,7 @@ function App() {
   useEffect(() => {
     if (location === "/") setActiveTab("scan");
     else if (location === "/history") setActiveTab("history");
+    else if (location === "/saved") setActiveTab("saved");
     else if (location.startsWith("/result")) setActiveTab("scan");
     else if (location === "/auth") setActiveTab("profile");
   }, [location]);
@@ -26,6 +28,7 @@ function App() {
     setActiveTab(tab);
     if (tab === "scan") setLocation("/");
     else if (tab === "history") setLocation("/history");
+    else if (tab === "saved") setLocation("/saved");
     else if (tab === "profile") setLocation("/auth");
   };
 
@@ -36,11 +39,12 @@ function App() {
           <Route path="/" component={ScannerPage} />
           <Route path="/result/:barcode" component={ResultPage} />
           <Route path="/history" component={HistoryPage} />
+          <Route path="/saved" component={SavedPage} />
           <Route path="/auth" component={AuthPage} />
           <Route component={NotFound} />
         </Switch>
       </div>
-      
+
       <nav className="bg-white border-t border-neutral-200 py-2 px-4">
         <div className="flex justify-around">
           <button 
@@ -58,7 +62,8 @@ function App() {
             <span className="text-xs mt-1">History</span>
           </button>
           <button 
-            className="flex flex-col items-center p-2 text-neutral-500"
+            onClick={() => handleNavChange("saved")}
+            className={`flex flex-col items-center p-2 ${activeTab === "saved" ? "text-primary" : "text-neutral-500"}`}
           >
             <BookmarkCheck className="h-5 w-5" />
             <span className="text-xs mt-1">Saved</span>

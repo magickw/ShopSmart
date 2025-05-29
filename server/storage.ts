@@ -22,6 +22,12 @@ export interface IStorage {
   saveScanHistory(history: InsertScanHistory): Promise<ScanHistory>;
   clearScanHistory(userId?: string): Promise<void>;
   
+  // Saved products methods
+  getSavedProducts(userId?: string): Promise<ProductResponse[]>;
+  saveProductToFavorites(product: ProductResponse, userId?: string): Promise<void>;
+  removeSavedProduct(barcode: string, userId?: string): Promise<void>;
+  clearSavedProducts(userId?: string): Promise<void>;
+  
   // User methods
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -33,6 +39,7 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private products: Map<string, ProductResponse>;
   private history: ScanHistory[];
+  private savedProducts: Map<string, ProductResponse>;
   private users: Map<string, User>;
   private usersByEmail: Map<string, User>;
   private usersByGoogleId: Map<string, User>;
@@ -41,6 +48,7 @@ export class MemStorage implements IStorage {
   constructor() {
     this.products = new Map();
     this.history = [];
+    this.savedProducts = new Map();
     this.users = new Map();
     this.usersByEmail = new Map();
     this.usersByGoogleId = new Map();
@@ -91,6 +99,22 @@ export class MemStorage implements IStorage {
     } else {
       this.history = [];
     }
+  }
+
+  async getSavedProducts(userId?: string): Promise<ProductResponse[]> {
+    return Array.from(this.savedProducts.values());
+  }
+
+  async saveProductToFavorites(product: ProductResponse, userId?: string): Promise<void> {
+    this.savedProducts.set(product.barcode, product);
+  }
+
+  async removeSavedProduct(barcode: string, userId?: string): Promise<void> {
+    this.savedProducts.delete(barcode);
+  }
+
+  async clearSavedProducts(userId?: string): Promise<void> {
+    this.savedProducts.clear();
   }
   
   // User methods
@@ -167,19 +191,6 @@ export class DatabaseStorage implements IStorage {
     try {
       const [product] = await db.query.products.findMany({
         where: eq(schema.products.barcode, barcode),
-              with: {
-          stores: {
-            columns: {
-              id: true,
-              name: true,
-              logo: true,
-              link: true,
-            },
-            with: {
-              prices: true,
-            },
-          },
-        },
       });
       
       if (!product) {
@@ -276,7 +287,7 @@ export class DatabaseStorage implements IStorage {
           if (existingStore) {
             storeId = existingStore.id;
             
-           // Update store if needed
+            // Update store if needed
             const updateData: any = {};
             if (storeData.logo && existingStore.logo !== storeData.logo) {
               updateData.logo = storeData.logo;
@@ -382,6 +393,78 @@ export class DatabaseStorage implements IStorage {
       }
     } catch (error) {
       console.error("Error clearing scan history:", error);
+      throw error;
+    }
+  }
+
+  async getSavedProducts(userId?: string): Promise<ProductResponse[]> {
+    try {
+      const query = userId 
+        ? db.query.savedProducts.findMany({
+            where: eq(schema.savedProducts.userId, userId),
+            orderBy: (fields, { desc }) => [desc(fields.savedAt)],
+          })
+        : db.query.savedProducts.findMany({
+            orderBy: (fields, { desc }) => [desc(fields.savedAt)],
+          });
+      
+      const saved = await query;
+      return saved.map(item => item.productData as ProductResponse);
+    } catch (error) {
+      console.error("Error fetching saved products:", error);
+      return [];
+    }
+  }
+
+  async saveProductToFavorites(product: ProductResponse, userId?: string): Promise<void> {
+    try {
+      await db.insert(schema.savedProducts)
+        .values({
+          barcode: product.barcode,
+          productData: product,
+          userId: userId || null,
+        })
+        .onConflictDoUpdate({
+          target: [schema.savedProducts.userId, schema.savedProducts.barcode],
+          set: {
+            productData: product,
+            savedAt: new Date(),
+          },
+        });
+    } catch (error) {
+      console.error("Error saving product to favorites:", error);
+      throw error;
+    }
+  }
+
+  async removeSavedProduct(barcode: string, userId?: string): Promise<void> {
+    try {
+      if (userId) {
+        await db.delete(schema.savedProducts)
+          .where(
+            eq(schema.savedProducts.barcode, barcode) && 
+            eq(schema.savedProducts.userId, userId)
+          );
+      } else {
+        await db.delete(schema.savedProducts)
+          .where(eq(schema.savedProducts.barcode, barcode));
+      }
+    } catch (error) {
+      console.error("Error removing saved product:", error);
+      throw error;
+    }
+  }
+
+  async clearSavedProducts(userId?: string): Promise<void> {
+    try {
+      if (userId) {
+        await db.delete(schema.savedProducts)
+          .where(eq(schema.savedProducts.userId, userId));
+      } else {
+        await db.delete(schema.savedProducts);
+      }
+    } catch (error) {
+      console.error("Error clearing saved products:", error);
       throw error;
     }
   }

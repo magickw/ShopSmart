@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, json, varchar, boolean, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, json, varchar, boolean, primaryKey, unique, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -79,12 +79,22 @@ export const insertUserSchema = createInsertSchema(users).pick({
 // Scan history schema
 export const scanHistory = pgTable("scan_history", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").references(() => users.id), // optional, can be null for anonymous scans
-  barcode: text("barcode").notNull(),
-  productData: json("product_data").notNull(),
-  scannedAt: timestamp("scanned_at").defaultNow(),
+  barcode: varchar("barcode", { length: 255 }).notNull(),
+  productData: jsonb("product_data").notNull(),
+  scannedAt: timestamp("scanned_at").defaultNow().notNull(),
+  userId: varchar("user_id", { length: 255 }),
   isFavorite: boolean("is_favorite").default(false),
 });
+
+export const savedProducts = pgTable("saved_products", {
+  id: serial("id").primaryKey(),
+  barcode: varchar("barcode", { length: 255 }).notNull(),
+  productData: jsonb("product_data").notNull(),
+  savedAt: timestamp("saved_at").defaultNow().notNull(),
+  userId: varchar("user_id", { length: 255 }),
+}, (table) => ({
+  userBarcodeIdx: unique().on(table.userId, table.barcode),
+}));
 
 export const insertScanHistorySchema = createInsertSchema(scanHistory).pick({
   barcode: true,
@@ -105,6 +115,7 @@ export const scanHistoryRelations = relations(scanHistory, ({ one }) => ({
 export const usersRelations = relations(users, ({ many }) => ({
   scanHistory: many(scanHistory),
 }));
+
 export const productsRelations = relations(products, ({ many }) => ({
   prices: many(prices),
 }));
@@ -138,7 +149,10 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type ScanHistory = typeof scanHistory.$inferSelect;
-export type InsertScanHistory = z.infer<typeof insertScanHistorySchema>;
+export type InsertScanHistory = typeof scanHistory.$inferInsert;
+
+export type SavedProduct = typeof savedProducts.$inferSelect;
+export type InsertSavedProduct = typeof savedProducts.$inferInsert;
 
 // Define Product Response types for API
 export const productResponseSchema = z.object({
@@ -158,17 +172,3 @@ export const productResponseSchema = z.object({
 });
 
 export type ProductResponse = z.infer<typeof productResponseSchema>;
-
-export const selectStoreWithPriceSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  logo: z.string().nullable(),
-  link: z.string().nullable(),
-  price: z.string(),
-  currency: z.string(),
-  inStock: z.number(),
-  isBestPrice: z.boolean().optional(),
-  updatedAt: z.string(),
-});
-
-export type StoreWithPrice = z.infer<typeof selectStoreWithPriceSchema>;
