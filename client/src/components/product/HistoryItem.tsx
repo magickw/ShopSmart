@@ -29,7 +29,12 @@ export default function HistoryItem({ item, onView }: HistoryItemProps) {
         </div>
         <div className="text-right">
           <p className="text-sm font-bold text-neutral-800">${lowestPrice}</p>
-          <p className="text-xs text-neutral-500">{storeName}</p>
+          <p className="text-xs text-neutral-500"><a
+                  href={store.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline hover:text-blue-600"
+                >{store.name}</a></p>
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between">
