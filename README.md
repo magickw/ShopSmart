@@ -1,8 +1,8 @@
-# PriceScan - Barcode Price Comparison Application
+# ShopSmart - Barcode Price Comparison Application
 
 ## Overview
 
-PriceScan is a full-stack web application that allows users to scan product barcodes and compare prices across different retailers. Users can scan a product, view detailed pricing information from various stores, and access their scan history.
+ShopSmart is a full-stack web application that allows users to scan product barcodes and compare prices across different retailers. Users can scan a product, view detailed pricing information from various stores, and access their scan history.
 
 ## User Preferences
 

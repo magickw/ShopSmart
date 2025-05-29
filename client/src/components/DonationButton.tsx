@@ -40,7 +40,7 @@ export default function DonationButton() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Support PriceScan</DialogTitle>
+          <DialogTitle>Support ShopSmart</DialogTitle>
           <DialogDescription>
             Your donation helps keep this app free for everyone. Thank you for your support!
           </DialogDescription>

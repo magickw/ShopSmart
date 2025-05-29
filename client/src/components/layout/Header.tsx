@@ -9,7 +9,7 @@ interface HeaderProps {
 }
 
 export default function Header({ 
-  title = "PriceScan", 
+  title = "ShopSmart", 
   showHistory = true, 
   onHistoryClick, 
   showBackButton = false,
