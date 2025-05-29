@@ -262,8 +262,8 @@ export class DatabaseStorage implements IStorage {
           if (existingStore) {
             storeId = existingStore.id;
             
-            // Update store if needed
-            if (existingStore.logo !== storeData.logo) {
+            // Update store if needed and if logo actually changed
+            if (storeData.logo && existingStore.logo !== storeData.logo) {
               await tx.update(schema.stores)
                 .set({ logo: storeData.logo })
                 .where(eq(schema.stores.id, storeId));

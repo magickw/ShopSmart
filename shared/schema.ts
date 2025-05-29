@@ -34,8 +34,8 @@ export const insertStoreSchema = createInsertSchema(stores).pick({
 // Price schema
 export const prices = pgTable("prices", {
   id: serial("id").primaryKey(),
-  productId: integer("product_id").notNull(),
-  storeId: integer("store_id").notNull(),
+  productId: integer("product_id").notNull().references(() => products.id),
+  storeId: integer("store_id").notNull().references(() => stores.id),
   price: text("price").notNull(),
   currency: text("currency").default("USD"),
   inStock: integer("in_stock").default(1),
@@ -98,9 +98,27 @@ export const scanHistoryRelations = relations(scanHistory, ({ one }) => ({
   }),
 }));
 
-// Add relations after both tables are defined
+// Define all relations
 export const usersRelations = relations(users, ({ many }) => ({
   scanHistory: many(scanHistory),
+}));
+export const productsRelations = relations(products, ({ many }) => ({
+  prices: many(prices),
+}));
+
+export const storesRelations = relations(stores, ({ many }) => ({
+  prices: many(prices),
+}));
+
+export const pricesRelations = relations(prices, ({ one }) => ({
+  product: one(products, {
+    fields: [prices.productId],
+    references: [products.id],
+  }),
+  store: one(stores, {
+    fields: [prices.storeId],
+    references: [stores.id],
+  }),
 }));
 
 // Export types
