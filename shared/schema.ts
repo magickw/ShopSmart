@@ -158,3 +158,17 @@ export const productResponseSchema = z.object({
 });
 
 export type ProductResponse = z.infer<typeof productResponseSchema>;
+
+export const selectStoreWithPriceSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  logo: z.string().nullable(),
+  link: z.string().nullable(),
+  price: z.string(),
+  currency: z.string(),
+  inStock: z.number(),
+  isBestPrice: z.boolean().optional(),
+  updatedAt: z.string(),
+});
+
+export type StoreWithPrice = z.infer<typeof selectStoreWithPriceSchema>;

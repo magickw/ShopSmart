@@ -57,48 +57,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const apiProduct = response.data.items[0];
-      
-      // Create stores array with pricing information
-      // In a real app, you would query multiple retailer APIs or a unified API
-      // For this example, we'll simulate the data for different stores
-      // const stores = [
-      //   {
-      //     id: 1,
-      //     name: "Walmart",
-      //     price: (parseFloat(apiProduct.offers[0]?.price || "10") * 1.05).toFixed(2),
-      //     currency: "USD",
-      //     inStock: 1,
-      //     isBestPrice: false,
-      //     updatedAt: new Date().toISOString()
-      //   },
-      //   {
-      //     id: 2,
-      //     name: "Costco",
-      //     price: (parseFloat(apiProduct.offers[0]?.price || "10") * 0.85).toFixed(2),
-      //     currency: "USD",
-      //     inStock: 1,
-      //     isBestPrice: false,
-      //     updatedAt: new Date().toISOString()
-      //   },
-      //   {
-      //     id: 3,
-      //     name: "Safeway",
-      //     price: (parseFloat(apiProduct.offers[0]?.price || "10") * 1.10).toFixed(2),
-      //     currency: "USD",
-      //     inStock: 1,
-      //     isBestPrice: false,
-      //     updatedAt: new Date().toISOString()
-      //   },
-      //   {
-      //     id: 4,
-      //     name: "Target",
-      //     price: (parseFloat(apiProduct.offers[0]?.price || "10") * 0.95).toFixed(2),
-      //     currency: "USD",
-      //     inStock: 1,
-      //     isBestPrice: false,
-      //     updatedAt: new Date().toISOString()
-      //   }
-      // ];
+      if (!apiProduct) {
+        return res.status(404).json({ message: "Product not found" });
+      }
       const stores = apiProduct.offers.map((offer, index) => ({
         id: index + 1,
         name: offer.merchant,

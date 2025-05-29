@@ -167,6 +167,19 @@ export class DatabaseStorage implements IStorage {
     try {
       const [product] = await db.query.products.findMany({
         where: eq(schema.products.barcode, barcode),
+              with: {
+          stores: {
+            columns: {
+              id: true,
+              name: true,
+              logo: true,
+              link: true,
+            },
+            with: {
+              prices: true,
+            },
+          },
+        },
       });
       
       if (!product) {
@@ -183,15 +196,32 @@ export class DatabaseStorage implements IStorage {
       
       // Format as ProductResponse
       const storesWithPrices = prices.map(price => ({
-        id: price.store.id,
-        name: price.store.name,
-        logo: price.store.logo,
-        price: price.price,
-        currency: price.currency,
-        inStock: price.inStock,
-        updatedAt: price.updatedAt.toISOString(),
-        isBestPrice: false, // Will be calculated below
-      }));
+        const store = product.stores.find(s => s.id === price.storeId);
+        if (!store) {
+          return null;
+        }
+        return {
+          id: store.id,
+          name: store.name,
+          logo: store.logo,
+          link: store.link,
+          price: price.price,
+          currency: price.currency,
+          inStock: price.inStock,
+          updatedAt: price.updatedAt.toISOString(),
+          isBestPrice: false, // Will be calculated below
+        };
+      }).filter(Boolean) as {
+        id: number;
+        name: string;
+        logo: string;
+        link: string;
+        price: number;
+        currency: string;
+        inStock: boolean;
+        updatedAt: string;
+        isBestPrice: boolean;
+      }[];
       
       // Calculate best price
       if (storesWithPrices.length > 0) {
