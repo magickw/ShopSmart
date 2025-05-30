@@ -85,7 +85,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         category: apiProduct.category,
         description: apiProduct.description,
         model: apiProduct.model,
-        images: apiProduct.images,
+        imageUrl: apiProduct.images[0] || "",  // Use first image or empty string
         lowestRecordedPrice: apiProduct.lowest_recorded_price,
         highestRecordedPrice: apiProduct.highest_recorded_price,
         stores

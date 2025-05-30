@@ -18,11 +18,12 @@ export type {
 // Extend ProductResponse to add imageUrl for frontend convenience
 export interface ProductResponse extends BaseProductResponse {
   imageUrl?: string;  // Optional image URL for easier access
+  stores: StoreWithPrice[]; 
 }
 
 // Additional frontend-specific types
 export interface StoreWithPrice extends Store {
-  price: string;
+  price: number;
   currency: string;
   inStock: number;
   isBestPrice?: boolean;
