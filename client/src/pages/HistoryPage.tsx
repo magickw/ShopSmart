@@ -7,7 +7,7 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 import ErrorDisplay from "@/components/ui/error-display";
 import { apiRequest } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
-import { ScanHistory } from "@/lib/types";
+import { ScanHistory, ProductResponse } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
 export default function HistoryPage() {
@@ -16,6 +16,13 @@ export default function HistoryPage() {
   
   const { data: historyItems, isLoading, error } = useQuery<ScanHistory[]>({
     queryKey: ["/api/history"],
+    queryFn: async () => {
+      const response = await fetch("/api/history");
+      if (!response.ok) {
+        throw new Error("Failed to fetch history");
+      }
+      return response.json();
+    },
   });
   
   const clearHistoryMutation = useMutation({

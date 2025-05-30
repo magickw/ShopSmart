@@ -59,14 +59,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const apiProduct = response.data.items[0];
       const stores = apiProduct.offers.map((offer, index) => ({
         id: index + 1,
-        name: offer.merchant,
-        price: offer.price.toFixed(2),
+        name: offer.merchant || "Unknown",
+        price: offer.price != null ? parseFloat(offer.price.toFixed(2)) : 0,
         currency: offer.currency || "USD",  // fallback if missing
-        inStock: offer.availability !== "Out of Stock" ? 1 : 0,
+        inStock: offer.availability !== "Out of Stock",
         isBestPrice: false,  // we'll compute this below
         updatedAt: new Date(offer.updated_t * 1000).toISOString(),  // convert Unix timestamp
         link: offer.link || "",  // ensure link is always a string
-        imageUrl: offer.image || apiProduct.images[0] || ""  // fallback to product image if offer image is missing
       }));
 
 

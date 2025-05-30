@@ -17,15 +17,18 @@ export default function HistoryItem({ item, onView }: HistoryItemProps) {
   const firstImage = product.images?.[0];
 
   return (
-    <div className="p-4 cursor-pointer hover:bg-neutral-50 transition-colors" onClick={onView}>
+    <div
+      className="p-4 cursor-pointer hover:bg-neutral-50 transition-colors"
+      onClick={onView}
+    >
       <div className="flex items-start space-x-3">
         {firstImage ? (
-          <img 
-            src={firstImage} 
+          <img
+            src={firstImage}
             alt={product.title}
             className="w-12 h-12 object-cover rounded-lg bg-neutral-100"
             onError={(e) => {
-              e.currentTarget.style.display = 'none';
+              e.currentTarget.style.display = "none";
             }}
           />
         ) : (
@@ -59,17 +62,24 @@ export default function HistoryItem({ item, onView }: HistoryItemProps) {
                   at {bestPriceStore.name}
                 </a>
               ) : (
-                <span className="text-xs text-neutral-500 ml-1">at {bestPriceStore.name}</span>
+                <span className="text-xs text-neutral-500 ml-1">
+                  at {bestPriceStore.name}
+                </span>
               )}
             </div>
           )}
 
           <p className="text-xs text-neutral-500 mt-1">
-            {formatDate(item.scannedAt)}
+            Scanned {formatDate(item.scannedAt)}
           </p>
         </div>
 
-        <span className="material-icons text-neutral-400 text-lg">chevron_right</span>
+        <div className="text-right flex items-center">
+          <span className="text-xs text-neutral-400">#{product.barcode}</span>
+          <span className="material-icons text-neutral-400 text-lg ml-2">
+            chevron_right
+          </span>
+        </div>
       </div>
     </div>
   );
