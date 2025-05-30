@@ -103,7 +103,7 @@ export default function SavedPage() {
                 {savedItems.map((product) => (
                   <div key={product.barcode} className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden">
                     <div className="p-4">
-                      <ProductCard product={product} />
+                      <ProductCard product={product} showSaveButton={false} />
                       <div className="flex justify-between items-center mt-4 pt-4 border-t border-neutral-200">
                         <Button
                           variant="outline"

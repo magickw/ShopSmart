@@ -9,7 +9,7 @@ import {
   type ProductResponse
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import * as schema from "@shared/schema";
 
 export interface IStorage {
@@ -448,8 +448,10 @@ export class DatabaseStorage implements IStorage {
       if (userId) {
         await db.delete(schema.savedProducts)
           .where(
-            eq(schema.savedProducts.barcode, barcode) && 
-            eq(schema.savedProducts.userId, userId)
+            and(
+              eq(schema.savedProducts.barcode, barcode),
+              eq(schema.savedProducts.userId, userId)
+            )
           );
       } else {
         await db.delete(schema.savedProducts)

@@ -161,6 +161,10 @@ The application is configured for deployment with:
 3. Run `npm run dev` to start the development server
 4. Run `npm run db:push` to push the database schema
 
+## Demo
+
+![Demo](assets/app_tour.gif)
+
 ## Next Steps
 
 1. Implement the barcode scanning functionality using a library like quagga.js or zbar.wasm
