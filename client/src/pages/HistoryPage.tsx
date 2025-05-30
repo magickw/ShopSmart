@@ -17,7 +17,15 @@ export default function HistoryPage() {
   const { data: historyItems, isLoading, error } = useQuery<ScanHistory[]>({
     queryKey: ["/api/history"],
     queryFn: async () => {
-      const response = await fetch("/api/history");
+      const headers: Record<string, string> = {};
+      
+      // Add auth token if available
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch("/api/history", { headers });
       if (!response.ok) {
         throw new Error("Failed to fetch history");
       }

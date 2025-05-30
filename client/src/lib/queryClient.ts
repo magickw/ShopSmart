@@ -7,28 +7,38 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
-  method: string,
+export const apiRequest = async (
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
   url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
+  data?: any
+): Promise<any> => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add auth token if available
   const token = localStorage.getItem("authToken");
-  const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
-  
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, {
+  const config: RequestInit = {
     method,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  };
 
-  await throwIfResNotOk(res);
-  return res;
-}
+  if (data) {
+    config.body = JSON.stringify(data);
+  }
+
+  const response = await fetch(url, config);
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+};
 
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {
@@ -38,7 +48,7 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const token = localStorage.getItem("authToken");
     const headers: Record<string, string> = {};
-    
+
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -59,7 +69,21 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
+      queryFn: async ({ queryKey }) => {
+        const headers: Record<string, string> = {};
+
+        // Add auth token if available
+        const token = localStorage.getItem("authToken");
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(queryKey[0] as string, { headers });
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      },
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,

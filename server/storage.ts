@@ -71,11 +71,13 @@ export class MemStorage implements IStorage {
     if (userId) {
       const userHistory = this.history.filter(h => h.userId === userId);
       console.log("Filtered history for user:", userHistory.length);
-      return userHistory;
+      return userHistory.sort((a, b) => new Date(b.scannedAt).getTime() - new Date(a.scannedAt).getTime());
     }
 
-    console.log("Returning all history:", this.history);
-    return this.history;
+    // For anonymous users, return items with null userId
+    const anonymousHistory = this.history.filter(h => h.userId === null);
+    console.log("Returning anonymous history:", anonymousHistory);
+    return anonymousHistory.sort((a, b) => new Date(b.scannedAt).getTime() - new Date(a.scannedAt).getTime());
   }
 
   async saveScanHistory(insertHistory: InsertScanHistory): Promise<ScanHistory> {

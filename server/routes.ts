@@ -7,7 +7,7 @@ import { z } from "zod";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
-import { setupAuth, isAuthenticated } from "./auth";
+import { setupAuth, isAuthenticated, verifyToken } from "./auth";
 
 // Define the upcitemdb API base URL
 const BARCODE_API_URL = "https://api.upcitemdb.com/prod/trial/lookup";
@@ -25,21 +25,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (cachedProduct) {
         return res.json(cachedProduct);
       }
-
-      // // If not cached, fetch from Barcode Lookup API
-      // const apiKey = process.env.BARCODE_LOOKUP_API_KEY;
-      // if (!apiKey) {
-      //   return res.status(500).json({ message: "API key not configured" });
-      // }
-
-      // const response = await axios.get(BARCODE_API_URL, {
-      //   params: {
-      //     upc: barcode,  // NOTE: upc, not barcode
-      //     key: apiKey,
-      //     formatted: "y"
-      //   }
-      // });
-
       const response = await axios.post(
       BARCODE_API_URL,
       { upc: barcode },  // The trial endpoint expects a POST body, not query params
@@ -98,10 +83,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.saveProduct(validatedProduct);
 
       // Save to scan history
+      let userId = null;
+
+      // Check JWT token in Authorization header
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const user = verifyToken(token);
+        if (user) {
+          userId = user.id;
+        }
+      }
+
       await storage.saveScanHistory({
         barcode,
         productData: validatedProduct,
-        userId: null  // For anonymous users, always use null
+        userId
       });
 
       return res.json(validatedProduct);
@@ -127,20 +124,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/history", async (req, res) => {
     try {
       let history;
-      // If user is authenticated, get their specific history
-      if (req.isAuthenticated() && req.user) {
-        const userId = req.user.id || req.user.claims?.sub;
-        if (userId) {
-        history = await storage.getScanHistory(userId);
-        } else {
-          // Fallback for anonymous users
-          history = await storage.getScanHistory();
+      let userId = null;
+
+      // Check session-based authentication first
+      if (req.isAuthenticated?.() && req.user) {
+        userId = req.user.id;
+      } else {
+        // Check JWT token in Authorization header
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          const token = authHeader.substring(7);
+          const user = verifyToken(token);
+          if (user) {
+            userId = user.id;
+          }
         }
+      }
+
+      // Get history based on user authentication status
+      if (userId) {
+        history = await storage.getScanHistory(userId);
       } else {
         // For anonymous users, get general history
         history = await storage.getScanHistory();
       }
 
+      console.log(`Returning history: ${history?.length || 0} items`);
       res.json(history || []);
     } catch (error) {
       console.error("Error in /api/history:", error);
