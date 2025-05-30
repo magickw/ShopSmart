@@ -6,43 +6,16 @@ import StoreComparison from "@/components/product/StoreComparison";
 import ErrorDisplay from "@/components/ui/error-display";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { Button } from "@/components/ui/button";
-import { BookmarkIcon, Share2Icon, MapIcon } from "lucide-react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { ProductResponse } from "@/lib/types";
+import { Share2Icon, MapIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/api";
-import { queryClient } from "@/lib/queryClient";
 
 export default function ResultPage() {
   const { barcode } = useParams() as { barcode: string };
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const saveMutation = useMutation({
-    mutationFn: async (product: ProductResponse) => {
-      await apiRequest("POST", "/api/saved", product);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/saved"] });
-      toast({
-        title: "Product Saved",
-        description: "This product has been saved to your favorites",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to save product",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const handleSave = () => {
-    if (productData) {
-      saveMutation.mutate(productData);
-    }
-  };
+  
 
   const handleShare = async () => {
     if (productData) {
@@ -160,10 +133,6 @@ export default function ResultPage() {
             ))}
 
             <div className="flex items-center justify-center space-x-3 mt-2 mb-10">
-              <Button variant="outline" size="sm" className="flex items-center justify-center px-4 py-2 bg-white border border-neutral-300 rounded-lg text-neutral-700 text-sm" onClick={handleSave} disabled={saveMutation.isPending}>
-                <BookmarkIcon className="h-4 w-4 mr-1" />
-                {saveMutation.isPending ? "Saving..." : "Save"}
-              </Button>
               <Button variant="outline" size="sm" className="flex items-center justify-center px-4 py-2 bg-white border border-neutral-300 rounded-lg text-neutral-700 text-sm" onClick={handleShare}>
                 <Share2Icon className="h-4 w-4 mr-1" />
                 Share
