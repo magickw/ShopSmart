@@ -244,16 +244,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     await capturePaypalOrder(req, res);
   });
 
-  // Clear history
-  app.post("/api/history/clear", async (req, res) => {
-    try {
-      await storage.clearScanHistory();
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error clearing history:", error);
-      res.status(500).json({ message: "Error clearing history" });
-    }
-  });
 
   // Get saved products
   app.get("/api/saved", async (req, res) => {

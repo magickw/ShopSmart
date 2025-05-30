@@ -15,6 +15,13 @@ export function useBarcode() {
       // Prefetch the data so it's available when the ResultPage loads
       await queryClient.prefetchQuery({
         queryKey: [`/api/lookup/${barcode}`],
+          queryFn: async () => {
+          const response = await fetch(`/api/lookup/${barcode}`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch product");
+          }
+          return response.json();
+        },
         retry: 2,
       });
       

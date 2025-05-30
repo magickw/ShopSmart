@@ -363,9 +363,8 @@ export class DatabaseStorage implements IStorage {
           orderBy: (fields, { desc }) => [desc(fields.scannedAt)],
         });
       } else {
-        // Get general history (including null user entries for anonymous users)
+        // Get all history for anonymous users
         query = db.query.scanHistory.findMany({
-          where: (fields, { isNull }) => isNull(fields.userId),
           orderBy: (fields, { desc }) => [desc(fields.scannedAt)],
         });
       }
