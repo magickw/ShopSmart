@@ -101,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.saveScanHistory({
         barcode,
         productData: validatedProduct,
-        userId: req.isAuthenticated() && req.user ? (req.user.id || req.user.claims?.sub) : null
+        userId: null  // For anonymous users, always use null
       });
 
       return res.json(validatedProduct);
@@ -243,7 +243,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/order/:orderID/capture", async (req, res) => {
     await capturePaypalOrder(req, res);
   });
-
 
   // Get saved products
   app.get("/api/saved", async (req, res) => {

@@ -63,20 +63,19 @@ export class MemStorage implements IStorage {
     this.products.set(product.barcode, product);
   }
 
+
   async getScanHistory(userId?: string): Promise<ScanHistory[]> {
-    let filteredHistory = this.history;
-    
-    // Filter by user ID if provided
+    console.log("InMemoryStorage getScanHistory called with userId:", userId);
+    console.log("Total history items:", this.history.length);
+
     if (userId) {
-      filteredHistory = filteredHistory.filter(h => h.userId === userId);
+      const userHistory = this.history.filter(h => h.userId === userId);
+      console.log("Filtered history for user:", userHistory.length);
+      return userHistory;
     }
-    
-    return [...filteredHistory].sort((a, b) => {
-      // Convert to string first to ensure we're working with valid date values
-      const dateA = new Date(String(a.scannedAt)).getTime();
-      const dateB = new Date(String(b.scannedAt)).getTime();
-      return dateB - dateA;
-    });
+
+    console.log("Returning all history:", this.history);
+    return this.history;
   }
 
   async saveScanHistory(insertHistory: InsertScanHistory): Promise<ScanHistory> {
@@ -90,6 +89,9 @@ export class MemStorage implements IStorage {
       isFavorite: insertHistory.isFavorite || false
     };
     this.history.push(history);
+
+    // Log the saved history for debugging
+    console.log("Saved scan history:", history);
     return history;
   }
 
@@ -365,6 +367,7 @@ export class DatabaseStorage implements IStorage {
       } else {
         // Get all history for anonymous users
         query = db.query.scanHistory.findMany({
+          where: eq(schema.scanHistory.userId, null),
           orderBy: (fields, { desc }) => [desc(fields.scannedAt)],
         });
       }
@@ -377,10 +380,14 @@ export class DatabaseStorage implements IStorage {
   
   async saveScanHistory(history: InsertScanHistory): Promise<ScanHistory> {
     try {
+      console.log("Attempting to save scan history:", history);
       const [newHistory] = await db.insert(schema.scanHistory)
-        .values(history)
+        .values({
+    ...history,
+    scannedAt: new Date(),
+  })
         .returning();
-      
+      console.log("Saved scan history in DB:", newHistory);
       return newHistory;
     } catch (error) {
       console.error("Error saving scan history:", error);
