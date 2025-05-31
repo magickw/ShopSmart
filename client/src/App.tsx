@@ -4,6 +4,7 @@ import ResultPage from "@/pages/ResultPage";
 import HistoryPage from "@/pages/HistoryPage";
 import SavedPage from "@/pages/SavedPage";
 import LoginForm from "@/components/auth/LoginForm";
+import RegisterForm from "@/components/auth/RegisterForm";
 import NotFound from "@/pages/not-found";
 import { useEffect, useState, useMemo } from "react";
 import { useLocation } from "wouter";
@@ -94,6 +95,7 @@ function App() {
           <Route path="/history" component={HistoryPage} />
           <Route path="/saved" component={SavedPage} />
           <Route path="/auth/login" component={LoginForm} />
+          <Route path="/auth/register" component={RegisterForm} />
           <Route component={NotFound} />
         </Switch>
       </div>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
+
 export default function RegisterForm({ onSuccess, onLoginClick }: { 
   onSuccess?: () => void; 
   onLoginClick?: () => void;
@@ -149,7 +150,7 @@ export default function RegisterForm({ onSuccess, onLoginClick }: {
         <div className="text-center text-sm">
           Already have an account?{" "}
           <button 
-            onClick={onLoginClick} 
+            onClick={onLoginClick || (() => window.location.href = "/auth/login")} 
             className="underline underline-offset-4 hover:text-primary"
           >
             Sign in
