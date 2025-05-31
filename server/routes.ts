@@ -94,6 +94,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId = user.id;
         }
       }
+      console.log("Saving scan history for userId:", userId);
+      console.log("Scan history data:", { barcode, productData: validatedProduct, userId });
 
       await storage.saveScanHistory({
         barcode,

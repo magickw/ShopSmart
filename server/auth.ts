@@ -15,13 +15,18 @@ export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
+    conString: process.env.DATABASE_URL || "",
     createTableIfMissing: true,
     ttl: sessionTtl,
     tableName: "sessions",
   });
+
+  if (!process.env.SESSION_SECRET) {
+    throw new Error("SESSION_SECRET must be defined in environment variables.");
+  }
+
   return session({
-    secret: process.env.SESSION_SECRET || "local-dev-secret",
+    secret: process.env.SESSION_SECRET,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -45,18 +50,12 @@ export async function comparePassword(password: string, hash: string): Promise<b
 
 // JWT token helpers
 export function generateToken(user: any): string {
-  const secret = process.env.JWT_SECRET || "local-dev-secret";
-  return jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      profileImageUrl: user.profileImageUrl,
-    },
-    secret,
-    { expiresIn: "7d" }
-  );
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET must be defined in environment variables.");
+  }
+
+  return jwt.sign({ id: user.id }, secret, { expiresIn: "1h" });
 }
 
 export function verifyToken(token: string): any {
@@ -108,6 +107,9 @@ export async function setupAuth(app: Express) {
           callbackURL: "/api/auth/google/callback",
         },
         async (accessToken, refreshToken, profile, done) => {
+          console.log("Access Token:", accessToken);
+          console.log("Refresh Token:", refreshToken);
+          console.log("Profile:", profile);
           try {
             // Look up user by Google ID or create if not exists
             let user = await storage.getUserByGoogleId(profile.id);
@@ -121,13 +123,13 @@ export async function setupAuth(app: Express) {
                 lastName: profile.name?.familyName,
                 profileImageUrl: profile.photos?.[0]?.value,
                 googleId: profile.id,
-                passwordHash: null,
               });
             }
             
             return done(null, user);
           } catch (error) {
-            return done(error as Error);
+            console.error("Google OAuth Error:", error);
+            return done(error);
           }
         }
       )
@@ -244,6 +246,8 @@ export async function setupAuth(app: Express) {
       failureRedirect: "/login",
     }),
     (req, res) => {
+      console.log("User info:", req.user);
+      console.log("Error:", req.error);
       // Successful authentication, redirect home
       const token = generateToken(req.user);
       res.redirect(`/login/success?token=${token}`);
@@ -269,6 +273,8 @@ export async function setupAuth(app: Express) {
     
     return res.status(401).json({ message: "Unauthorized" });
   });
+
+  
 
   // Logout route
   app.post("/api/auth/logout", (req, res, next) => {

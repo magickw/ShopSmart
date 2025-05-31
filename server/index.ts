@@ -62,7 +62,7 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  const host = "127.0.0.1"; // or use process.env.HOST if configurable
+  const host = "localhost"; // or use process.env.HOST if configurable
   server.listen(port, host, () => {
     log(`serving on http://${host}:${port}`);
   });
